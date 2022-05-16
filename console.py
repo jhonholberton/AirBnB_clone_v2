@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """ Console Module """
 import cmd
-from os import replace
 import sys
 from models.base_model import BaseModel
 from models.__init__ import storage
@@ -74,7 +73,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is'}'\
+                    if pline[0] == '{' and pline[-1] =='}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -116,24 +115,21 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        class_name = HBNBCommand.convert_str_dict(args)[0]
-        kwargs = HBNBCommand.convert_str_dict(args)[1]
-
         if not args:
             print("** class name missing **")
             return
-        elif class_name not in HBNBCommand.classes:
+        data = args.split(" ")
+        if data[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
+        new_instance = eval(data[0])()
 
-        new_instance = HBNBCommand.classes[class_name]()
-        for key, value in kwargs.items():
-            if hasattr(new_instance, key):
-                setattr(new_instance, key, value)
-
-        storage.new(new_instance)
-        print(new_instance.id)
+        for i in range(1, len(data)):
+            key, value = data[i].split("=")
+            value = value.replace("_", " ")
+            setattr(new_instance, key, eval(value))
         storage.save()
+        print(new_instance.id)
 
     def help_create(self):
         """ Help information for the create method """
