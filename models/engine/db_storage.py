@@ -1,5 +1,3 @@
-
-  
 #!/usr/bin/python3
 """Module contains database engine"""
 from models.city import City
