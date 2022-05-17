@@ -26,72 +26,56 @@ class DBStorage:
 
     def __init__(self):
         """Initialization method"""
-        user = os.environ.get('HBNB_MYSQL_USER')
-        pas = os.environ.get('HBNB_MYSQL_PWD')
-        host = os.environ.get('HBNB_MYSQL_HOST')
-        db = os.environ.get('HBNB_MYSQL_DB')
-
-        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'
-                                      .format(user,
-                                              pas, host, db,
-                                              pool_pre_ping=True))
-
-        if os.getenv('HBNB_ENV') == 'test':
+        user = getenv('HBNB_MYSQL_USER')
+        passwd = getenv('HBNB_MYSQL_PWD')
+        host = getenv('HBNB_MYSQL_HOST')
+        db = getenv('HBNB_MYSQL_DB')
+        env = getenv('HBNB_MYSQL_ENV')
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.format(
+            user, passwd, host, db), pool_pre_ping=True)
+        if env == "test":
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """
-        Returns a dictionary: a list of obj of one type
-        """
-        cls_name = {"State": State,
-                    "City": City,
-                    "User": User,
-                    "Place": Place,
-                    "Review": Review,
-                    "Amenity": Amenity}
-        obj = {}
-        cls_s = [value for key, value in cls_name.items()]
-        if cls:
-            if type(cls) == str:
-                cls = cls_name[cls]
-            cls_s = [cls]
-        for one_class in cls_s:
-            for value in self.__session.query(one_class):
-                key = str(value.__class__.__name__) + "." + str(value.id)
-                obj[key] = value
-        return obj
+        """Query for all classes"""
+
+        class_dict = {'City': City, 'State': State, 'User': User,
+                      'Place': Place, 'Review': Review, 'Amenity': Amenity}
+
+        obj_dict = {}
+
+        try:
+            for key, value in class_dict.items():
+                if cls is None or key == cls:
+                    query_result = self.__session.query(value).all()
+                    for obj in query_result:
+                        obj_dict[obj.__class__.__name__+'.' + obj.id] = obj
+        except Exception:
+            pass
+
+        return obj_dict
 
     def new(self, obj):
-        """
-        Add object to current database session
-        """
+        """Creates and save a new object"""
         self.__session.add(obj)
+        self.save()
 
     def save(self):
-        """
-        Commit object to current database session
-        """
+        """Commit the changes to the database"""
         self.__session.commit()
 
     def delete(self, obj=None):
-        """
-        Delete object to current database session
-        """
-        if obj is not None:
+        """Delete the object"""
+        if obj:
             self.__session.delete(obj)
+        self.save()
 
     def reload(self):
-        """
-        Reload objects to current database session
-        """
+        """Creates session on start"""
         Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine,
-                                       expire_on_commit=False)
-        Session = scoped_session(session_factory)
+        Session = sessionmaker(bind=self.__engine, expire_on_commit=False)
         self.__session = scoped_session(Session)
 
     def close(self):
-        """
-        Remove the method on the private session attribute
-        """
-        self.__session.close()
+        """Close the session"""
+        self.__session.remove()
