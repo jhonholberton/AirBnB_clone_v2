@@ -1,31 +1,27 @@
+
+  
 #!/usr/bin/python3
-
-"""
-Added new engine: DataBase Storage
-"""
-
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import sessionmaker
-from models.base_model import BaseModel, Base
-from sqlalchemy.orm import scoped_session
-from models.user import User
-from models.state import State
+"""Module contains database engine"""
 from models.city import City
 from models.amenity import Amenity
-from models.place import Place
 from models.review import Review
+from models.place import Place
+from models.user import User
+from models.state import State
+from models.base_model import BaseModel, Base
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import (create_engine)
+from os import getenv
+from models.base_model import BaseModel
 
 
-class DBStorage:
-    """DBStorage class"""
+class DBStorage():
+    """Engine class"""
     __engine = None
     __session = None
 
     def __init__(self):
-        """Initialization method"""
+        """Construct a dbclass"""
         user = getenv('HBNB_MYSQL_USER')
         passwd = getenv('HBNB_MYSQL_PWD')
         host = getenv('HBNB_MYSQL_HOST')
