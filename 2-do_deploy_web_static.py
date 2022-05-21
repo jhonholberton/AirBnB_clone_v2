@@ -4,7 +4,7 @@ distributes an archive to your web servers, using the function do_deploy"""
 
 from fabric.api import put, run, env
 from os.path import exists
-env.hosts = ['142.44.167.228', '144.217.246.195']
+env.hosts = ['35.196.81.68', '35.227.113.155']
 
 
 def do_deploy(archive_path):
@@ -25,4 +25,5 @@ def do_deploy(archive_path):
         run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
     except:
+        pass
         return False
